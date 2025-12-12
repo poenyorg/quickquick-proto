@@ -14,7 +14,8 @@ service User {
 message AccountUpdateEventReply {
       oneof payload {
         OrderUpdate order_update = 1;
-        AccountUpdate account_update = 2;
+        repeated OrderUpdate order_updates = 2;
+        AccountUpdate account_update = 3;
       }
 }
 
