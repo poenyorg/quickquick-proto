@@ -1,0 +1,15 @@
+[package]
+name = "trading_grpc_client"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dotenv = "0.15.0"
+prost.workspace = true
+tonic.workspace = true
+tokio = { workspace = true }
+tokio-stream.workspace = true
+
+
+[build-dependencies]
+tonic-build = "0.13.1"

@@ -1,0 +1,28 @@
+syntax = "proto3";
+package controller_notify;
+
+service ControllerNotifyService {
+    rpc NotifyPlaceOrders(stream StreamNewOrders) returns (stream StreamNewOrdersResponse);
+}
+
+message NewOrderProposal {
+    uint32 exchange_id = 1;
+    uint32 market_id = 2;
+    int64 size = 3;
+    int64 price = 4;
+}
+
+
+
+message StreamNewOrders {
+    repeated NewOrderProposal base_orders = 1;
+    repeated NewOrderProposal hedge_orders = 2;
+    bool hedge_by_filled_market = 3;
+    uint32 hedge_exchange_id = 4;
+    int64 max_spread = 5;
+    int64 event_timestamp = 6;
+}
+
+message StreamNewOrdersResponse {
+    uint64 counter = 1;
+}

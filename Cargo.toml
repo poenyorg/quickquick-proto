@@ -1,0 +1,11 @@
+
+[workspace]
+members = ["proto_builder/*"]
+resolver = "2"
+
+[workspace.dependencies]
+# sync, thread
+tokio = { version = "1.43.0", features = ["full"] }
+tokio-stream = { version = "0.1.17", features = ["sync"] }
+prost = "0.13.5"
+tonic = "0.13.1"

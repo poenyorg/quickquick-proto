@@ -1,0 +1,17 @@
+fn main() {
+    tonic_build::configure()
+        .build_server(false)
+        .build_client(true)
+        .compile_protos(
+            &[
+                "../../proto/exchange.proto",
+                "../../proto/trade.proto",
+                "../../proto/user.proto",
+                "../../proto/controller_notify.proto",
+                "../../proto/market.proto",
+                "../../proto/price_aggregator.proto",
+            ],
+            &["../../proto"],
+        )
+        .unwrap();
+}

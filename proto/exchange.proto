@@ -1,0 +1,27 @@
+syntax = "proto3";
+package exchange;
+
+enum TimeInForce {
+      IOC = 0;
+      GTC = 1;
+      GTD = 2;
+}
+
+enum OrderType {
+      LIMIT = 0;
+      MARKET = 1;
+      STOP_LIMIT = 2;
+      STOP_MARKET = 3;
+      TAKE_PROFIT_LIMIT = 4;
+      TAKE_PROFIT_MARKET = 5;
+}
+
+enum OrderStatus {
+    UNKNOW = 0;
+    NEW = 1;
+    FILLED = 2;
+    PARTIALLY_FILLED = 3;
+    CANCELED = 4;
+    EXPIRED = 5;
+    REJECTED = 6;
+}

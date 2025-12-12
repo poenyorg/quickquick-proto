@@ -1,0 +1,56 @@
+syntax = "proto3";
+import "exchange.proto";
+import "google/protobuf/empty.proto";
+
+package trade;
+
+service Trade {
+    rpc PlaceOrder(RequestPlaceOrder) returns (PlaceOrderReply);
+    rpc PlaceOrders(RequestPlaceOrders) returns (PlaceOrdersReply);
+    rpc CancelOrder(RequestCancelOrder) returns (CancelOrderReply);
+    rpc CancelOrders(RequestCancelOrders) returns (google.protobuf.Empty);
+}
+
+
+message RequestPlaceOrder {
+    uint32 market = 1;
+    exchange.OrderType order_type = 2;
+    int64 size = 3;
+    int64 price = 4;
+    bool reduce_only = 5;
+    int64 timestamp = 6;
+    string cloid = 7;
+}
+
+message PlaceOrderReply {
+    string order_id = 1;
+    exchange.OrderStatus status = 2;
+    uint32 market_id = 3;
+    int64 code = 4;
+    string msg = 5;
+    string cloid = 6;
+}
+
+message RequestPlaceOrders {
+    repeated RequestPlaceOrder requests = 1;
+}
+
+message PlaceOrdersReply {
+    repeated PlaceOrderReply orders = 1;
+}
+
+message RequestCancelOrder {
+    uint32 market_id = 1;
+    string order_id = 2;
+    int64 timestamp = 3;
+}
+
+message CancelOrderReply {
+    string order_id = 1;
+    exchange.OrderStatus status = 2;
+    uint32 code = 3;
+}
+
+message RequestCancelOrders {
+    repeated RequestCancelOrder requests = 1;
+}

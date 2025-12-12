@@ -1,0 +1,33 @@
+syntax = "proto3";
+package market;
+
+service Market {
+    rpc GetOrderbook(RequestOrderbook) returns (OrderbookReply);
+    rpc SubscribeOrderbook(RequestOrderbook) returns (stream OrderbookReply);
+    rpc SubscribeOrderbooks(RequestOrderbooks) returns (stream OrderbookReply);
+}
+
+
+message RequestOrderbook {
+    uint32 market_id = 1;
+    uint32 depth = 2;
+}
+
+message RequestOrderbooks {
+   repeated uint32 market_ids = 1;
+   uint32 depth = 2;
+}
+
+message OrderbookReply {
+    uint32 market_id = 1;
+    int64 last_update_id = 2;
+    int64 transaction_time = 3;
+    int64 event_time = 4;
+    repeated BookLevel bids = 5;
+    repeated BookLevel asks = 6;
+}
+
+message BookLevel {
+    int64 price = 1;
+    int64 size = 2;
+}
