@@ -16,7 +16,14 @@ message AccountUpdateEventReply {
         OrderUpdate order_update = 1;
         OrderUpdates order_updates = 2;
         AccountUpdate account_update = 3;
+        BalanceChanged balance_changed = 4;
       }
+}
+
+message BalanceChanged {
+    int64 balance_changed = 1;
+    string asset = 2;
+    int64 updated_at = 3;
 }
 
 message AccountUpdate {
@@ -38,6 +45,7 @@ message OrderUpdate {
     int64 last_filled = 5;
     uint32 market_id = 6;
     string cloid = 7;
+    bool use_last_filled = 8;
 }
 
 message RequestOrders {
