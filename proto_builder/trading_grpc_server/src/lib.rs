@@ -15,3 +15,7 @@ pub mod market {
 pub mod controller_notify {
     tonic::include_proto!("controller_notify");
 }
+
+pub mod price_aggregator {
+    tonic::include_proto!("price_aggregator");
+}
