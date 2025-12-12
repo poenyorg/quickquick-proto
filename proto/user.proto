@@ -14,7 +14,7 @@ service User {
 message AccountUpdateEventReply {
       oneof payload {
         OrderUpdate order_update = 1;
-        repeated OrderUpdate order_updates = 2;
+        OrderUpdates order_updates = 2;
         AccountUpdate account_update = 3;
       }
 }
@@ -24,6 +24,10 @@ message AccountUpdate {
     bool is_balance_changed = 2;
     repeated PositionInfo positions = 3;
     bool is_positions_changed = 4;
+}
+
+message OrderUpdates {
+    repeated OrderUpdate orders = 1;
 }
 
 message OrderUpdate {
