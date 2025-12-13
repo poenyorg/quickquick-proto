@@ -43,9 +43,10 @@ message OrderUpdate {
     int64 size = 3;
     int64 price = 4;
     int64 last_filled = 5;
-    uint32 market_id = 6;
-    string cloid = 7;
-    bool use_last_filled = 8;
+    int64 filled = 6;
+    uint32 market_id = 7;
+    string cloid = 8;
+    bool use_last_filled = 9;
 }
 
 message RequestOrders {
