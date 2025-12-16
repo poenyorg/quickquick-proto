@@ -14,8 +14,16 @@ service User {
 message AccountUpdateEventReply {
       oneof payload {
         OrderUpdate order_update = 1;
-        AccountUpdate account_update = 2;
+        OrderUpdates order_updates = 2;
+        AccountUpdate account_update = 3;
+        BalanceChanged balance_changed = 4;
       }
+}
+
+message BalanceChanged {
+    int64 balance_changed = 1;
+    string asset = 2;
+    int64 updated_at = 3;
 }
 
 message AccountUpdate {
@@ -25,14 +33,20 @@ message AccountUpdate {
     bool is_positions_changed = 4;
 }
 
+message OrderUpdates {
+    repeated OrderUpdate orders = 1;
+}
+
 message OrderUpdate {
     string order_id = 1;
     exchange.OrderStatus status = 2;
     int64 size = 3;
     int64 price = 4;
     int64 last_filled = 5;
-    uint32 market_id = 6;
-    string cloid = 7;
+    int64 filled = 6;
+    uint32 market_id = 7;
+    string cloid = 8;
+    bool use_last_filled = 9;
 }
 
 message RequestOrders {
