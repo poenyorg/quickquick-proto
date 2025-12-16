@@ -1,10 +1,10 @@
 [package]
 name = "trading_grpc_client"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 
 [dependencies]
-dotenv = "0.15.0"
+dotenv.workspace = true
 prost.workspace = true
 tonic.workspace = true
 tokio = { workspace = true }
