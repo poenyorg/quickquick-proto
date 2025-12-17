@@ -4,8 +4,8 @@ import "google/protobuf/empty.proto";
 package controller_notify;
 
 service ControllerNotifyService {
-    rpc NotifyPlaceOrders(stream StreamNewOrders) returns (stream StreamNewOrdersResponse);
-    rpc AutoCancelOrders(AutoCancelOrdersProposal) returns (google.protobuf.Empty)
+    rpc NotifyStreamProposal(stream StreamProposal) returns (stream StreamProposalResponse);
+    rpc AutoCancelOrders(AutoCancelOrdersProposal) returns (google.protobuf.Empty);
 }
 
 message NewOrderProposal {
