@@ -24,8 +24,8 @@ message NewOrdersProposal {
 }
 
 message CancelOrdersProposal {
-    int64 min_price_buy = 1;
-    int64 max_price_sell = 2;
+    int64 max_price_for_buy = 1;
+    int64 min_price_for_sell = 2;
     uint32 exchange_id = 3;
     uint32 market_id = 4;
 }
