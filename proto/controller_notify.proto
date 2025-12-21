@@ -13,6 +13,7 @@ message NewOrderProposal {
     uint32 market_id = 2;
     int64 size = 3;
     int64 price = 4;
+    uint32 time_cancel_after_place = 5;
 }
 
 message NewOrdersProposal {
