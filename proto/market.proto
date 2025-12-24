@@ -5,23 +5,23 @@ service Market {
     rpc GetOrderbook(RequestOrderbook) returns (OrderbookReply);
     rpc SubscribeOrderbook(RequestOrderbook) returns (stream OrderbookReply);
     rpc SubscribeOrderbooks(RequestOrderbooks) returns (stream OrderbookReply);
-    rpc SubscribeMarketInfo(RequestMarketInfo) returns (stream MarketInfoReply);
-    rpc SubscribeMarketsInfo(RequestMarketsInfo) returns (stream MarketsInfoReply);
+    rpc SubscribeMarketContext(RequestMarketContext) returns (stream MarketContextReply);
+    rpc SubscribeMarketsContext(RequestMarketsContext) returns (stream MarketsContextReply);
 }
 
 
-message RequestMarketsInfo {
+message RequestMarketsContext {
     repeated uint32 market_ids = 1;
 }
 
-message MarketsInfoReply {
-    repeated MarketInfoReply info = 1;
+message MarketsContextReply {
+    repeated MarketContextReply info = 1;
 }
-message RequestMarketInfo {
+message RequestMarketContext {
     uint32 market_id = 1;
 }
 
-message MarketInfoReply {
+message MarketContextReply {
     uint32 market_id = 1;
     int64 mark_price = 2;
     int64 index_price = 3;
