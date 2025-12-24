@@ -15,7 +15,7 @@ message RequestMarketsContext {
 }
 
 message MarketsContextReply {
-    repeated MarketContextReply info = 1;
+    repeated MarketContextReply contexts = 1;
 }
 message RequestMarketContext {
     uint32 market_id = 1;
