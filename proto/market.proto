@@ -7,8 +7,8 @@ service Market {
     rpc SubscribeOrderbooks(RequestOrderbooks) returns (stream OrderbookReply);
     rpc SubscribeMarketContext(RequestMarketContext) returns (stream MarketContextReply);
     rpc SubscribeMarketsContext(RequestMarketsContext) returns (stream MarketsContextReply);
+    rpc GetMarketsContext(RequestMarketsContext) returns (MarketsContextReply);
 }
-
 
 message RequestMarketsContext {
     repeated uint32 market_ids = 1;
