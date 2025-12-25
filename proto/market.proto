@@ -6,7 +6,7 @@ service Market {
     rpc SubscribeOrderbook(RequestOrderbook) returns (stream OrderbookReply);
     rpc SubscribeOrderbooks(RequestOrderbooks) returns (stream OrderbookReply);
     rpc SubscribeMarketContext(RequestMarketContext) returns (stream MarketContextReply);
-    rpc SubscribeMarketsContext(RequestMarketsContext) returns (stream MarketsContextReply);
+    rpc SubscribeMarketsContext(RequestMarketsContext) returns (stream MarketContextReply);
     rpc GetMarketsContext(RequestMarketsContext) returns (MarketsContextReply);
 }
 
