@@ -7,11 +7,23 @@ package trade;
 service Trade {
     rpc PlaceOrder(RequestPlaceOrder) returns (PlaceOrderReply);
     rpc PlaceOrders(RequestPlaceOrders) returns (PlaceOrdersReply);
+    rpc StreamPlaceOrders(RequestPlaceOrders) returns (stream StreamPlaceOrderReply);
     rpc CancelOrder(RequestCancelOrder) returns (CancelOrderReply);
     rpc CancelOrders(RequestCancelOrders) returns (google.protobuf.Empty);
+    rpc StreamCancelOrders(RequestCancelOrders) returns (stream StreamCancelReply);
     rpc AutoCancelOrders(RequestAutoCancelOrders) returns (google.protobuf.Empty);
 }
 
+
+message StreamPlaceOrderReply {
+    bool is_ok = 1;
+    string msg = 2;
+}
+
+message StreamCancelReply {
+    bool is_ok = 1;
+    string msg = 2;
+}
 
 message RequestPlaceOrder {
     uint32 market = 1;
