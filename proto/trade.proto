@@ -5,13 +5,14 @@ import "google/protobuf/empty.proto";
 package trade;
 
 service Trade {
-    rpc PlaceOrder(RequestPlaceOrder) returns (PlaceOrderReply);
-    rpc PlaceOrders(RequestPlaceOrders) returns (PlaceOrdersReply);
+    rpc PlaceOrder(RequestPlaceOrder) returns (google.protobuf.Empty);
+    rpc PlaceOrders(RequestPlaceOrders) returns (google.protobuf.Empty);
     rpc StreamPlaceOrders(stream RequestPlaceOrders) returns (stream StreamPlaceOrderReply);
     rpc CancelOrder(RequestCancelOrder) returns (CancelOrderReply);
     rpc CancelOrders(RequestCancelOrders) returns (google.protobuf.Empty);
     rpc StreamCancelOrders(stream RequestCancelOrders) returns (stream StreamCancelReply);
     rpc AutoCancelOrders(RequestAutoCancelOrders) returns (google.protobuf.Empty);
+    rpc StreamPlaceOrderResult(google.protobuf.Empty) returns (stream PlaceOrderReply);
 }
 
 
