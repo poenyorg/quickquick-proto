@@ -889,7 +889,7 @@ dependencies = [
 
 [[package]]
 name = "trading_grpc_client"
-version = "0.1.16"
+version = "0.1.17"
 dependencies = [
  "dotenv",
  "prost",
@@ -901,7 +901,7 @@ dependencies = [
 
 [[package]]
 name = "trading_grpc_server"
-version = "0.1.16"
+version = "0.1.17"
 dependencies = [
  "dotenv",
  "prost",
