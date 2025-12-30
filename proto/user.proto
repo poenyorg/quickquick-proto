@@ -6,7 +6,7 @@ package user;
 service User {
     rpc QueryOrders(RequestOrders) returns (QueryOrdersReply);
     rpc QueryPositions(RequestPositions) returns (QueryPositionsReply);
-    rpc QueryAccountBalance(RequestFuturesAccountBalance) returns (QueryAccountBalanceReply);
+    rpc QueryAccountBalance(RequestAccountBalance) returns (QueryAccountBalanceReply);
     rpc QueryAccountInfo(RequestAccountInfo) returns (QueryAccountInfoReply);
     rpc SubscribeAccountUpdate(google.protobuf.Empty) returns (stream AccountUpdateEventReply);
 }
@@ -82,7 +82,7 @@ message PositionInfo {
     int64 entry_price = 3;
 }
 
-message RequestFuturesAccountBalance {
+message RequestAccountBalance {
     int64 timestamp = 1;
 }
 
