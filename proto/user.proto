@@ -6,7 +6,7 @@ package user;
 service User {
     rpc QueryOrders(RequestOrders) returns (QueryOrdersReply);
     rpc QueryPositions(RequestPositions) returns (QueryPositionsReply);
-    rpc QueryFuturesAccountBalance(RequestFuturesAccountBalance) returns (QueryFuturesAccountBalanceReply);
+    rpc QueryAccountBalance(RequestFuturesAccountBalance) returns (QueryAccountBalanceReply);
     rpc QueryAccountInfo(RequestAccountInfo) returns (QueryAccountInfoReply);
     rpc SubscribeAccountUpdate(google.protobuf.Empty) returns (stream AccountUpdateEventReply);
 }
@@ -86,7 +86,7 @@ message RequestFuturesAccountBalance {
     int64 timestamp = 1;
 }
 
-message QueryFuturesAccountBalanceReply {
+message QueryAccountBalanceReply {
     repeated AccountAssetBalance assets = 1;
 }
 
@@ -99,6 +99,7 @@ message QueryAccountInfoReply {
     int64 total_margin_balance = 2;
     int64 available_balance = 3;
     repeated PositionInfo positions = 4;
+    repeated AccountAssetBalance assets = 5;
 }
 
 message AccountAssetBalance {
