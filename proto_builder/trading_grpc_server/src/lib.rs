@@ -19,3 +19,7 @@ pub mod controller_notify {
 pub mod price_aggregator {
     tonic::include_proto!("price_aggregator");
 }
+
+pub mod risk_management {
+    tonic::include_proto!("risk_management");
+}

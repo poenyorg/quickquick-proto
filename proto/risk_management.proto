@@ -1,0 +1,36 @@
+syntax = "proto3";
+import "exchange.proto";
+import "google/protobuf/empty.proto";
+package risk_management;
+
+service RiskManagement {
+    rpc SubscribeAccountState(google.protobuf.Empty) returns (stream AccountStateReply);
+}
+
+message AccountStateReply {
+    string session_id = 1;
+    uint32 exchange_id = 2;
+    int64 balance = 3;
+    repeated PositionInfo positions = 4;
+    repeated AssetInfo assets = 5;
+    repeated OrderInfo orders = 6;    
+}
+
+message PositionInfo {
+    uint32 market_id = 1;
+    int64 size = 2;
+    int64 entry_price = 3;
+}
+
+message AssetInfo {
+    uint32 asset_id = 1;
+    int64 amount = 2;
+}
+
+message OrderInfo {
+    string cloid = 1;
+    uint32 market_id = 2;
+    int64 size = 3;
+    int64 price = 4;
+    bool reduce_only = 5;
+}
