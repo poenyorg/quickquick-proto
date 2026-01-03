@@ -20,9 +20,8 @@ message NewOrderProposal {
 message NewOrdersProposal {
     repeated NewOrderProposal base_orders = 1;
     repeated NewOrderProposal hedge_orders = 2;
-    bool hedge_by_filled_market = 3;
-    uint32 hedge_exchange_id = 4;
-    int64 max_spread = 5;
+    bool no_hedge = 3;
+    int64 max_spread = 4;
 }
 
 message CancelOrdersProposal {
