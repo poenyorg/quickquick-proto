@@ -14,6 +14,7 @@ message NewOrderProposal {
     int64 size = 3;
     int64 price = 4;
     uint32 time_cancel_after_place = 5;
+    bool reduce_only = 6;
 }
 
 message NewOrdersProposal {
