@@ -37,6 +37,11 @@ message AutoCancelOrdersProposal {
     int64 event_timestamp = 3;
 }
 
+message CancelOrdersByCloidProposal {
+    repeated string cloids = 1;
+}
+
+
 message HandleOrdersProposal {
     NewOrdersProposal new_orders = 1;
     repeated CancelOrdersProposal cancel_orders = 2;
@@ -47,6 +52,7 @@ message StreamProposal {
     oneof payload {
         HandleOrdersProposal handle_order_proposal = 1;
         AutoCancelOrdersProposal auto_cancel_orders_proposal = 2;
+        CancelOrdersByCloidProposal cancel_orders_cloid = 3;
     }
 }
 
