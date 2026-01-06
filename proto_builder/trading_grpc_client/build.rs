@@ -10,6 +10,7 @@ fn main() {
                 "../../proto/controller_notify.proto",
                 "../../proto/market.proto",
                 "../../proto/price_aggregator.proto",
+                "../../proto/risk_management.proto",
             ],
             &["../../proto"],
         )
