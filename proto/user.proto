@@ -47,6 +47,7 @@ message OrderUpdate {
     uint32 market_id = 7;
     string cloid = 8;
     bool use_last_filled = 9;
+    bool reduce_only = 10;
 }
 
 message RequestOrders {
