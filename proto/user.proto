@@ -24,6 +24,7 @@ message BalanceChanged {
     int64 balance_changed = 1;
     uint32 asset_id = 2;
     int64 updated_at = 3;
+    bool is_renew = 4;
 }
 
 message AccountUpdate {
