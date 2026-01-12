@@ -3,34 +3,50 @@ import "exchange.proto";
 import "google/protobuf/empty.proto";
 package risk_management;
 
+/// RiskManagement service provides real-time account state monitoring for risk management systems.
+/// Streams complete account snapshots including balances, positions, assets, and pending orders.
+/// Used by risk controllers to monitor and enforce position limits, margin requirements, and exposure controls.
 service RiskManagement {
+    /// SubscribeAccountState provides a continuous stream of complete account state updates.
+    /// Each update contains a full snapshot of balances, positions, assets, and orders at that moment.
+    /// Stream continues until client disconnects or server closes the connection.
+    /// Updates are sent whenever any component of the account state changes (balance, position, order).
     rpc SubscribeAccountState(google.protobuf.Empty) returns (stream AccountStateReply);
 }
 
+/// AccountStateReply contains a complete snapshot of the account state at a point in time.
+/// Includes session information, exchange context, and all account components (balances, positions, orders).
+/// Each message represents the full account state - previous state should be replaced entirely.
 message AccountStateReply {
-    string session_id = 1;
-    uint32 exchange_id = 2;
-    int64 balance = 3;
-    repeated PositionInfo positions = 4;
-    repeated AssetInfo assets = 5;
-    repeated OrderInfo orders = 6;    
+    string session_id = 1;              /// Unique session identifier for this trading session
+    uint32 exchange_id = 2;             /// Exchange identifier for which this state applies
+    int64 balance = 3;                  /// Total account balance in base currency (e.g., USDC)
+    repeated PositionInfo positions = 4; /// All active positions across all markets
+    repeated AssetInfo assets = 5;      /// All asset holdings (wallet balances by asset type)
+    repeated OrderInfo orders = 6;      /// All pending orders waiting to be filled or canceled
 }
 
+/// PositionInfo represents a single open position in a market.
+/// Used in risk management to track exposure, calculate margin requirements, and monitor leverage.
 message PositionInfo {
-    uint32 market_id = 1;
-    int64 size = 2;
-    int64 entry_price = 3;
+    uint32 market_id = 1;    /// Market/trading pair identifier
+    int64 size = 2;          /// Position size (positive for long, negative for short)
+    int64 entry_price = 3;   /// Average entry price used for P&L calculation (in quote asset units)
 }
 
+/// AssetInfo represents the balance of a single asset in the account wallet.
+/// Different from positions - these are unencumbered asset holdings, not trading positions.
 message AssetInfo {
-    uint32 asset_id = 1;
-    int64 amount = 2;
+    uint32 asset_id = 1;     /// Asset identifier (e.g., USDC token ID, BTC token ID)
+    int64 amount = 2;        /// Current balance of this asset (in smallest unit)
 }
 
+/// OrderInfo represents a single pending order in the account.
+/// Used by risk management systems to account for margin requirements and exposure from pending orders.
 message OrderInfo {
-    string cloid = 1;
-    uint32 market_id = 2;
-    int64 size = 3;
-    int64 price = 4;
-    bool reduce_only = 5;
+    string cloid = 1;         /// Client-assigned order ID for tracking and correlation
+    uint32 market_id = 2;     /// Market/trading pair identifier
+    int64 size = 3;           /// Order quantity (positive for buy, negative for sell; in base asset units)
+    int64 price = 4;          /// Order price (in quote asset units)
+    bool reduce_only = 5;     /// If true, this order can only close positions, not open new ones
 }

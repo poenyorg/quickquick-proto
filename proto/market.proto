@@ -1,55 +1,96 @@
 syntax = "proto3";
 package market;
 
+/// Market service provides orderbook data and market context (pricing metrics) for trading pairs.
+/// Supports both snapshot queries and real-time streaming for orderbooks and market metrics.
+/// Used by traders to monitor liquidity, execute orders, and calculate fair values.
 service Market {
+    /// GetOrderbook retrieves a single snapshot of the current orderbook for a market.
+    /// Returns the current bid/ask levels at a specific depth without subscribing to updates.
+    /// Useful for one-time market data queries without establishing a stream.
     rpc GetOrderbook(RequestOrderbook) returns (OrderbookReply);
+    
+    /// SubscribeOrderbook provides continuous orderbook updates for a single market.
+    /// Client specifies market and desired depth; server streams updates as orderbook changes.
+    /// Stream continues until client disconnects or server closes the connection.
     rpc SubscribeOrderbook(RequestOrderbook) returns (stream OrderbookReply);
+    
+    /// SubscribeOrderbooks provides continuous orderbook updates for multiple markets in a single stream.
+    /// More efficient than multiple SubscribeOrderbook calls; all updates come through one stream.
+    /// Client can subscribe to different depths for different markets in a single request.
     rpc SubscribeOrderbooks(RequestOrderbooks) returns (stream OrderbookReply);
+    
+    /// SubscribeMarketContext provides continuous market metrics for a single market.
+    /// Streams mark price, index price, open interest, and funding rate as they change.
+    /// Useful for monitoring market health and calculating fair values.
     rpc SubscribeMarketContext(RequestMarketContext) returns (stream MarketContextReply);
+    
+    /// SubscribeMarketsContext provides continuous market metrics for multiple markets in a single stream.
+    /// More efficient than multiple SubscribeMarketContext calls for multi-market strategies.
+    /// All metrics for subscribed markets are streamed together.
     rpc SubscribeMarketsContext(RequestMarketsContext) returns (stream MarketContextReply);
+    
+    /// GetMarketsContext retrieves a snapshot of market context for multiple markets.
+    /// Returns all requested market metrics in a single response without establishing a stream.
+    /// Useful for one-time queries of market conditions across multiple markets.
     rpc GetMarketsContext(RequestMarketsContext) returns (MarketsContextReply);
 }
 
+/// RequestMarketsContext specifies which markets' context to query or subscribe to.
 message RequestMarketsContext {
-    repeated uint32 market_ids = 1;
+    repeated uint32 market_ids = 1;  /// List of market identifiers (e.g., BTC/USDC, ETH/USDC)
 }
 
+/// MarketsContextReply is a container for multiple market context snapshots.
+/// Used as the response to GetMarketsContext to return metrics for multiple markets.
 message MarketsContextReply {
-    repeated MarketContextReply contexts = 1;
+    repeated MarketContextReply contexts = 1;  /// Market context for each requested market
 }
+
+/// RequestMarketContext specifies which market's context to query or subscribe to.
 message RequestMarketContext {
-    uint32 market_id = 1;
+    uint32 market_id = 1;  /// Market/trading pair identifier
 }
 
+/// MarketContextReply contains market metrics and pricing data for a single market.
+/// Includes perpetual futures specific metrics like mark price, funding rate, and open interest.
 message MarketContextReply {
-    uint32 market_id = 1;
-    int64 mark_price = 2;
-    int64 index_price = 3;
-    int64 open_interest = 4;
-    int64 funding_rate = 5;
-    int64 event_time = 6;
+    uint32 market_id = 1;      /// Market/trading pair identifier
+    int64 mark_price = 2;      /// Mark price used for liquidation (in quote asset units)
+    int64 index_price = 3;     /// Underlying spot price index (in quote asset units)
+    int64 open_interest = 4;   /// Total open interest across all traders (in contracts or base asset units)
+    int64 funding_rate = 5;    /// Periodic funding rate between longs and shorts (in basis points or per-second rate)
+    int64 event_time = 6;      /// Timestamp when these metrics were calculated (milliseconds since epoch)
 }
 
+/// RequestOrderbook specifies which market's orderbook to retrieve and at what depth.
 message RequestOrderbook {
-    uint32 market_id = 1;
-    uint32 depth = 2;
+    uint32 market_id = 1;  /// Market/trading pair identifier
+    uint32 depth = 2;      /// Number of price levels to return (e.g., 5 = top 5 bids and asks)
 }
 
+/// RequestOrderbooks specifies which markets' orderbooks to retrieve with desired depths.
+/// All markets can have different depths in the same request.
 message RequestOrderbooks {
-   repeated uint32 market_ids = 1;
-   uint32 depth = 2;
+   repeated uint32 market_ids = 1;  /// List of market identifiers to fetch orderbooks for
+   uint32 depth = 2;                /// Number of price levels to return for each market
 }
 
+/// OrderbookReply contains the current orderbook snapshot for a single market.
+/// Includes both bid (buy) and ask (sell) sides with multiple price levels and quantities.
+/// Used to assess liquidity, calculate slippage, and execute market orders.
 message OrderbookReply {
-    uint32 market_id = 1;
-    int64 last_update_id = 2;
-    int64 transaction_time = 3;
-    int64 event_time = 4;
-    repeated BookLevel bids = 5;
-    repeated BookLevel asks = 6;
+    uint32 market_id = 1;           /// Market/trading pair identifier
+    int64 last_update_id = 2;       /// Sequence number of the last update (for detecting gaps/missed updates)
+    int64 transaction_time = 3;     /// Server processing time for this orderbook update (milliseconds since epoch)
+    int64 event_time = 4;           /// Exchange event time when orderbook was generated (milliseconds since epoch)
+    repeated BookLevel bids = 5;    /// Buy-side price levels (highest price first, usually sorted descending)
+    repeated BookLevel asks = 6;    /// Sell-side price levels (lowest price first, usually sorted ascending)
 }
 
+/// BookLevel represents a single price level in the orderbook.
+/// Aggregates all orders at that price point into total quantity available.
 message BookLevel {
-    int64 price = 1;
-    int64 size = 2;
+    int64 price = 1;   /// Price level (in quote asset units)
+    int64 size = 2;    /// Total quantity available at this price (in base asset units)
 }

@@ -1,17 +1,27 @@
 syntax = "proto3";
 package price_aggregator;
 
+/// PriceAggregator service provides real-time price feeds aggregated from multiple sources.
+/// Clients subscribe to price updates for specific markets and receive streaming price data.
+/// Useful for pricing strategies, risk management, and order execution algorithms.
 service PriceAggregator {
+    /// SubscribePrices provides a continuous stream of price updates for requested markets.
+    /// Client specifies which markets to subscribe to; server streams price updates as they occur.
+    /// Stream continues until client disconnects or server closes the connection.
+    /// Multiple price updates may be received per market as prices change or sources update.
     rpc SubscribePrices(RequestPrices) returns (stream StreamPriceReply);
 }
 
+/// RequestPrices specifies which markets the client wants to subscribe to for price updates.
 message RequestPrices {
-    repeated uint32 market_ids = 1;
+    repeated uint32 market_ids = 1;  /// List of market identifiers to subscribe to (e.g., BTC/USDC, ETH/USDC)
 }
 
+/// StreamPriceReply contains a single price update for a market from an aggregated source.
+/// Each message represents the latest price information at that moment.
 message StreamPriceReply {
-    uint32 market_id = 1;
-    int64 price = 2;
-    int64 event_time = 3;
-    uint32 source = 4;
+    uint32 market_id = 1;    /// Market/trading pair identifier
+    int64 price = 2;         /// Current price (in quote asset units, e.g., cents for USDC)
+    int64 event_time = 3;    /// Timestamp when this price was generated (milliseconds since epoch)
+    uint32 source = 4;       /// Price source identifier (e.g., exchange ID, pricing service ID for tracking provenance)
 }

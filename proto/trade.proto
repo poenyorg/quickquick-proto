@@ -4,73 +4,121 @@ import "google/protobuf/empty.proto";
 
 package trade;
 
+/// Trade service provides order placement, cancellation, and result streaming capabilities.
+/// Supports both unary (single request/response) and streaming (continuous flow) operations.
+/// All order placements are asynchronous - use StreamPlaceOrderResult to get final execution status.
 service Trade {
+    /// PlaceOrder places a single order synchronously.
+    /// Returns immediately with acknowledgment, but final execution status must be retrieved via StreamPlaceOrderResult.
     rpc PlaceOrder(RequestPlaceOrder) returns (PlaceOrderReply);
+    
+    /// PlaceOrders places multiple orders in a single batch request.
+    /// All orders are processed together; use this for improved performance vs. multiple PlaceOrder calls.
     rpc PlaceOrders(RequestPlaceOrders) returns (PlaceOrdersReply);
+    
+    /// StreamPlaceOrders enables continuous order placement via bidirectional stream.
+    /// Client sends order requests; server acknowledges each with success/failure status.
+    /// Useful for high-frequency trading and continuous order flow without request/response round-trips.
     rpc StreamPlaceOrders(stream RequestPlaceOrders) returns (stream StreamPlaceOrderReply);
+    
+    /// CancelOrder cancels a single order by order ID or client order ID (CLOID).
+    /// Provide either order_id or cloid to identify the order. Returns immediately with confirmation.
     rpc CancelOrder(RequestCancelOrder) returns (CancelOrderReply);
+    
+    /// CancelOrders cancels multiple orders in a single batch request.
+    /// More efficient than multiple CancelOrder calls; returns empty on success.
     rpc CancelOrders(RequestCancelOrders) returns (google.protobuf.Empty);
+    
+    /// StreamCancelOrders enables continuous order cancellation via bidirectional stream.
+    /// Client sends cancellation requests; server acknowledges each with success/failure status.
+    /// Useful for continuous order management without request/response round-trips.
     rpc StreamCancelOrders(stream RequestCancelOrders) returns (stream StreamCancelReply);
+    
+    /// AutoCancelOrders triggers automatic order cancellation after a countdown timer.
+    /// All orders in the specified market are automatically canceled when the countdown expires.
+    /// Useful for implementing Good-Till-Announcement (GTA) or similar time-based cancel strategies.
     rpc AutoCancelOrders(RequestAutoCancelOrders) returns (google.protobuf.Empty);
+    
+    /// StreamPlaceOrderResult provides a continuous stream of order execution results.
+    /// Subscribe to this RPC to receive final status updates for all orders placed on this connection.
+    /// Returns PlaceOrderReply with final status (FILLED, PARTIALLY_FILLED, CANCELED, REJECTED, etc.).
     rpc StreamPlaceOrderResult(google.protobuf.Empty) returns (stream PlaceOrderReply);
 }
 
-
+/// StreamPlaceOrderReply acknowledges receipt of an order placement request in streaming mode.
+/// Indicates whether the order was accepted by the trading engine (not final execution status).
 message StreamPlaceOrderReply {
-    bool is_ok = 1;
-    string msg = 2;
+    bool is_ok = 1;      /// True if order was accepted, false if validation failed
+    string msg = 2;      /// Acknowledgment message or error description
 }
 
+/// StreamCancelReply acknowledges receipt of a cancellation request in streaming mode.
+/// Indicates whether the cancellation was accepted by the trading engine.
 message StreamCancelReply {
-    bool is_ok = 1;
-    string msg = 2;
+    bool is_ok = 1;      /// True if cancellation was accepted, false if validation failed
+    string msg = 2;      /// Acknowledgment message or error description
 }
 
+/// RequestPlaceOrder contains all parameters needed to place a single order.
 message RequestPlaceOrder {
-    uint32 market = 1;
-    exchange.OrderType order_type = 2;
-    int64 size = 3;
-    int64 price = 4;
-    bool reduce_only = 5;
-    int64 timestamp = 6;
-    string cloid = 7;
+    uint32 market = 1;                  /// Market/trading pair identifier
+    exchange.OrderType order_type = 2;  /// Order type (LIMIT, MARKET, STOP_LIMIT, etc.)
+    int64 size = 3;                     /// Order quantity (positive for buy, negative for sell; in base asset units)
+    int64 price = 4;                    /// Order price (in quote asset units). Ignored for MARKET orders.
+    bool reduce_only = 5;               /// If true, order can only close positions, not open new ones
+    int64 timestamp = 6;                /// Order creation timestamp (milliseconds since epoch); used for ordering
+    string cloid = 7;                   /// Client-assigned order ID for tracking and cancellation by reference
 }
 
+/// PlaceOrderReply contains the result of a single order placement request.
+/// Returned immediately after order is submitted to the exchange (not final execution status).
 message PlaceOrderReply {
-    string order_id = 1;
-    exchange.OrderStatus status = 2;
-    uint32 market_id = 3;
-    int64 code = 4;
-    string msg = 5;
-    string cloid = 6;
+    string order_id = 1;                /// Exchange-assigned unique order identifier (empty if rejected)
+    exchange.OrderStatus status = 2;    /// Current order status (usually NEW or REJECTED upon submission)
+    uint32 market_id = 3;               /// Market/trading pair identifier
+    int64 code = 4;                     /// Error code if placement failed (0 = success)
+    string msg = 5;                     /// Success message or error description
+    string cloid = 6;                   /// Client-assigned order ID (echoed back for correlation)
 }
 
+/// RequestPlaceOrders groups multiple order placement requests.
+/// Use for batch operations to improve performance vs. individual PlaceOrder calls.
 message RequestPlaceOrders {
-    repeated RequestPlaceOrder requests = 1;
+    repeated RequestPlaceOrder requests = 1;  /// List of orders to place
 }
 
+/// PlaceOrdersReply contains results for multiple order placements.
+/// Responses are in the same order as requests for easy correlation.
 message PlaceOrdersReply {
-    repeated PlaceOrderReply orders = 1;
+    repeated PlaceOrderReply orders = 1;  /// Results for each order in the batch
 }
 
+/// RequestCancelOrder contains parameters needed to cancel a single order.
+/// Identify the order using either order_id (exchange-assigned) or cloid (client-assigned).
 message RequestCancelOrder {
-    uint32 market_id = 1;
-    string order_id = 2;
-    string cloid = 3;
-    int64 timestamp = 4;
+    uint32 market_id = 1;   /// Market/trading pair identifier
+    string order_id = 2;    /// Exchange-assigned order ID (use this or cloid, not both)
+    string cloid = 3;       /// Client-assigned order ID (use this or order_id, not both)
+    int64 timestamp = 4;    /// Cancellation request timestamp (milliseconds since epoch)
 }
 
+/// CancelOrderReply contains the result of a single order cancellation request.
+/// Returned immediately after cancellation is submitted to the exchange.
 message CancelOrderReply {
-    string order_id = 1;
-    exchange.OrderStatus status = 2;
-    uint32 code = 3;
+    string order_id = 1;              /// Exchange-assigned order identifier
+    exchange.OrderStatus status = 2;  /// Order status after cancellation attempt (usually CANCELED)
+    uint32 code = 3;                  /// Error code if cancellation failed (0 = success)
 }
 
+/// RequestCancelOrders groups multiple cancellation requests.
+/// Use for batch operations to cancel multiple orders efficiently.
 message RequestCancelOrders {
-    repeated RequestCancelOrder requests = 1;
+    repeated RequestCancelOrder requests = 1;  /// List of orders to cancel
 }
 
+/// RequestAutoCancelOrders triggers automatic order cancellation after a countdown.
+/// Useful for implementing time-based order management strategies (e.g., GTA orders).
 message RequestAutoCancelOrders {
-     uint32 market_id = 1;
-     int64 countdown_time = 2;
+     uint32 market_id = 1;      /// Market/trading pair identifier whose orders should be auto-canceled
+     int64 countdown_time = 2;  /// Countdown duration in milliseconds before auto-cancellation
 }

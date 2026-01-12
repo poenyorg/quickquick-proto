@@ -3,114 +3,156 @@ import "exchange.proto";
 import "google/protobuf/empty.proto";
 package user;
 
+/// User service provides account query and subscription capabilities.
+/// Clients can query orders, positions, and balances, or subscribe to real-time account updates.
 service User {
+    /// QueryOrders retrieves all active orders for a specified market.
+    /// Returns order details including ID, price, size, order type, and execution status.
     rpc QueryOrders(RequestOrders) returns (QueryOrdersReply);
+    
+    /// QueryPositions retrieves all active positions in the account.
+    /// Returns position details including market ID, size, and entry price.
     rpc QueryPositions(RequestPositions) returns (QueryPositionsReply);
+    
+    /// QueryAccountBalance retrieves current balances for all assets in the account.
+    /// Returns a list of assets with their current balances and update timestamps.
     rpc QueryAccountBalance(RequestAccountBalance) returns (QueryAccountBalanceReply);
+    
+    /// QueryAccountInfo retrieves comprehensive account information in a single call.
+    /// Includes total balances, available balance, all positions, and all assets.
+    /// More efficient than making separate calls for orders, positions, and balance.
     rpc QueryAccountInfo(RequestAccountInfo) returns (QueryAccountInfoReply);
+    
+    /// SubscribeAccountUpdate streams real-time account changes as they occur.
+    /// Clients receive updates for order status changes, position changes, and balance changes.
+    /// Continues streaming until client disconnects or server closes the stream.
     rpc SubscribeAccountUpdate(google.protobuf.Empty) returns (stream AccountUpdateEventReply);
 }
 
+/// AccountUpdateEventReply wraps different types of account update events using oneof.
+/// Each event message contains specific information about what changed in the account.
 message AccountUpdateEventReply {
       oneof payload {
-        OrderUpdate order_update = 1;
-        BatchOrderUpdate orders_update = 2;
-        BatchPositionUpdate positions_update = 3;
-        BalanceChanged balance_changed = 4;
+        OrderUpdate order_update = 1;                    /// Single order status change
+        BatchOrderUpdate orders_update = 2;             /// Multiple orders changed simultaneously
+        BatchPositionUpdate positions_update = 3;       /// Multiple positions changed simultaneously
+        BalanceChanged balance_changed = 4;             /// Asset balance change
       }
 }
 
+/// BalanceChanged indicates a change in an asset's balance.
+/// Used in the account update stream to notify of deposit, withdrawal, or trade settlement.
 message BalanceChanged {
-    int64 balance_changed = 1;
-    uint32 asset_id = 2;
-    int64 updated_at = 3;
-    bool is_renew = 4;
+    int64 balance_changed = 1;  /// Change amount (positive for increase, negative for decrease)
+    uint32 asset_id = 2;        /// Asset identifier (e.g., USDC token ID)
+    int64 updated_at = 3;       /// Timestamp of the balance change (milliseconds since epoch)
+    bool is_renew = 4;          /// If true, this is a balance renewal/snapshot rather than incremental change
 }
 
+/// BatchPositionUpdate groups multiple position changes in a single message.
+/// Useful when multiple markets are affected in a single transaction (e.g., hedging operations).
 message BatchPositionUpdate {
-    repeated PositionUpdate positions = 1;
+    repeated PositionUpdate positions = 1;  /// List of position changes
 }
 
+/// BatchOrderUpdate groups multiple order status changes in a single message.
+/// Useful when multiple orders are affected simultaneously (e.g., batch cancel or fill).
 message BatchOrderUpdate {
-    repeated OrderUpdate orders = 1;
+    repeated OrderUpdate orders = 1;  /// List of order updates
 }
 
+/// OrderUpdate represents a single order's status change from the exchange.
+/// Tracks fill progress, status transitions, and execution details.
 message OrderUpdate {
-    string order_id = 1;
-    exchange.OrderStatus status = 2;
-    int64 size = 3;
-    int64 price = 4;
-    int64 last_filled = 5;
-    int64 filled = 6;
-    uint32 market_id = 7;
-    string cloid = 8;
-    bool use_last_filled = 9;
+    string order_id = 1;          /// Exchange-assigned unique order identifier
+    exchange.OrderStatus status = 2;  /// Current order status (NEW, FILLED, CANCELED, etc.)
+    int64 size = 3;               /// Original order size (in base asset units)
+    int64 price = 4;              /// Order price (in quote asset units)
+    int64 last_filled = 5;        /// Amount filled in the most recent fill event (base asset units)
+    int64 filled = 6;             /// Cumulative amount filled so far (base asset units)
+    uint32 market_id = 7;         /// Market/trading pair identifier
+    string cloid = 8;             /// Client-assigned order ID for order tracking
+    bool use_last_filled = 9;     /// If true, use last_filled; if false, use filled for accounting
 }
 
+/// RequestOrders queries all orders for a specific market.
 message RequestOrders {
-    uint32 market = 1;
+    uint32 market = 1;  /// Market identifier to filter orders
 }
 
+/// QueryOrdersReply contains all orders matching the query request.
 message QueryOrdersReply {
-    repeated OrderInfo orders = 1;
+    repeated OrderInfo orders = 1;  /// List of orders in the specified market
 }
 
+/// OrderInfo contains detailed information about a single order.
+/// Used in query responses to provide complete order details.
 message OrderInfo {
-    string id = 1;
-    uint32 market_id = 2;
-    int64 size = 3;
-    int64 price = 4;
-    int64 timestamp = 5;
-    bool reduce_only = 6;
-    exchange.OrderType order_type = 7;
-    string cloid = 8;
+    string id = 1;                    /// Exchange-assigned unique order identifier
+    uint32 market_id = 2;             /// Market/trading pair identifier
+    int64 size = 3;                   /// Order quantity (in base asset units)
+    int64 price = 4;                  /// Order price (in quote asset units)
+    int64 timestamp = 5;              /// Order placement timestamp (milliseconds since epoch)
+    bool reduce_only = 6;             /// If true, order can only close positions, not open new ones
+    exchange.OrderType order_type = 7; /// Order type (LIMIT, MARKET, STOP_LIMIT, etc.)
+    string cloid = 8;                 /// Client-assigned order ID for tracking
 }
 
+/// RequestPositions queries all active positions in the account.
 message RequestPositions {
-    int64 timestamp = 1;
+    int64 timestamp = 1;  /// Query timestamp for consistency (optional, used for snapshots)
 }
 
+/// QueryPositionsReply contains all active positions in the account.
 message QueryPositionsReply {
-    repeated PositionInfo positions = 1;
+    repeated PositionInfo positions = 1;  /// List of all open positions
 }
 
+/// PositionUpdate represents a change to a position (opening, closing, or partial adjustment).
+/// Used in real-time account update streams.
 message PositionUpdate {
-    uint32 market_id = 1;
-    int64 size = 2;
-    int64 entry_price = 3;
-    bool is_renew = 4;
+    uint32 market_id = 1;    /// Market/trading pair identifier
+    int64 size = 2;          /// New position size (positive for long, negative for short)
+    int64 entry_price = 3;   /// Average entry price of the position (in quote asset units)
+    bool is_renew = 4;       /// If true, this is a snapshot; if false, this is an incremental update
 }
 
-
+/// PositionInfo contains detailed information about a single open position.
+/// Used in query responses to provide complete position details.
 message PositionInfo {
-    uint32 market_id = 1;
-    int64 size = 2;
-    int64 entry_price = 3;
+    uint32 market_id = 1;    /// Market/trading pair identifier
+    int64 size = 2;          /// Current position size (positive for long, negative for short, 0 for closed)
+    int64 entry_price = 3;   /// Average entry price (in quote asset units)
 }
 
+/// RequestAccountBalance queries the current asset balances.
 message RequestAccountBalance {
-    int64 timestamp = 1;
+    int64 timestamp = 1;  /// Query timestamp for consistency (optional, used for snapshots)
 }
 
+/// QueryAccountBalanceReply contains balances for all assets in the account.
 message QueryAccountBalanceReply {
-    repeated AccountAssetBalance assets = 1;
+    repeated AccountAssetBalance assets = 1;  /// List of all assets and their current balances
 }
 
+/// RequestAccountInfo queries complete account information.
 message RequestAccountInfo {
-    int64 timestamp = 1;
+    int64 timestamp = 1;  /// Query timestamp for consistency (optional, used for snapshots)
 }
 
+/// QueryAccountInfoReply contains comprehensive account information.
+/// Combines balances, positions, and risk metrics in a single response.
 message QueryAccountInfoReply {
-    int64 total_wallet_balance = 1;
-    int64 total_margin_balance = 2;
-    int64 available_balance = 3;
-    repeated PositionInfo positions = 4;
-    repeated AccountAssetBalance assets = 5;
+    int64 total_wallet_balance = 1;   /// Total balance in wallet (sum of all assets in base currency)
+    int64 total_margin_balance = 2;   /// Total balance available including margin (base currency)
+    int64 available_balance = 3;      /// Available balance for new trades (base currency)
+    repeated PositionInfo positions = 4;      /// All active positions
+    repeated AccountAssetBalance assets = 5;  /// All assets and their balances
 }
 
+/// AccountAssetBalance represents the balance of a single asset in the account.
 message AccountAssetBalance {
-    uint32 asset_id = 1;
-    int64 balance = 2;
-    int64 update_time= 3;
+    uint32 asset_id = 1;      /// Asset identifier (e.g., USDC token ID, BTC token ID)
+    int64 balance = 2;        /// Current balance of this asset (in smallest unit)
+    int64 update_time = 3;    /// Timestamp of last balance update (milliseconds since epoch)
 }
-
