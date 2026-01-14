@@ -35,7 +35,7 @@ service Market {
     /// Useful for one-time queries of market conditions across multiple markets.
     rpc GetMarketsContext(RequestMarketsContext) returns (MarketsContextReply);
 
-    rpc SubscribeTrade(RequestTrade) returns (stream TradeReply);
+    rpc SubscribeTrades(RequestTrades) returns (stream TradeReply);
 }
 
 /// RequestMarketsContext specifies which markets' context to query or subscribe to.
@@ -97,8 +97,8 @@ message BookLevel {
     int64 size = 2;    /// Total quantity available at this price (in base asset units)
 }
 
-message RequestTrade {
-    uint32 market_id = 1;
+message RequestTrades {
+    repeated uint32 market_ids = 1;
 }
 
 message TradeReply {
