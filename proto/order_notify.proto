@@ -1,0 +1,15 @@
+syntax = "proto3";
+import "exchange.proto";
+import "google/protobuf/empty.proto";
+
+package order_notify;
+
+
+service OrderNotifyService {
+    rpc SubscribeOrderStatus(google.protobuf.Empty) returns (stream OrderStatusReply);
+}
+
+message OrderStatusReply {
+    string cloid = 1;   
+    exchange.OrderStatus status = 2;
+}

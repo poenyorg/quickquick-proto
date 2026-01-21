@@ -23,3 +23,7 @@ pub mod price_aggregator {
 pub mod risk_management {
     tonic::include_proto!("risk_management");
 }
+
+pub mod order_notify {
+    tonic::include_proto!("order_notify");
+}
