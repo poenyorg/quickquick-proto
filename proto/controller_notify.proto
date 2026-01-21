@@ -25,6 +25,7 @@ message NewOrderProposal {
     int64 price = 4;                     /// Order price (in quote asset units)
     uint32 time_cancel_after_place = 5;  /// Auto-cancel timeout in milliseconds after placement
     bool reduce_only = 6;                /// If true, order can only close positions, not open new ones
+    string cloid = 7;                    /// Client order id
 }
 
 /// NewOrdersProposal groups multiple orders into base and hedge orders.
