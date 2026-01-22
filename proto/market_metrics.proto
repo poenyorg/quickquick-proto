@@ -1,0 +1,313 @@
+// Proto file to be added to quickquick-proto repository
+// Path: proto/market_metrics.proto
+
+syntax = "proto3";
+
+package market_metrics;
+
+service MarketMetrics {
+  rpc SubscribeMarketUpdates(RequestMarketUpdates) returns (stream MarketUpdateReply);
+}
+
+message RequestMarketUpdates {
+  repeated uint32 market_ids = 1;
+}
+
+message MarketUpdateReply {
+  uint32 exchange_id = 1;
+  uint32 market_id = 2;
+  int64 ts = 3;
+  optional int64 mid_price = 4;
+  optional int64 micro_price = 5;
+  optional int64 funding_rate = 6;
+  optional int64 funding_rate_bps_per_hour = 7;
+  MetricSnapshot spread = 8;
+  MetricSnapshot obi = 9;
+  MetricSnapshot volatility = 10;
+  MetricSnapshot trade_flow = 11;
+  optional MetricSnapshot funding = 12;
+  MarketStateSnapshot liquidity = 13;
+  MarketStateSnapshot stability = 14;
+  MarketStateSnapshot market_state = 15;
+  ActionConstraints action_constraints = 16;
+  map<int64, MarketRegimeSnapshot> regime_snapshots = 17;
+}
+
+message MetricSnapshot {
+  uint32 exchange_id = 1;
+  uint32 market_id = 2;
+  MetricType metric_type = 3;
+  MetricValue value = 4;
+  double confidence = 5;
+  repeated MetricFlag flags = 6;
+  int64 ts = 7;
+}
+
+enum MetricType {
+  METRIC_TYPE_UNSPECIFIED = 0;
+  METRIC_TYPE_SPREAD = 1;
+  METRIC_TYPE_ORDER_BOOK_IMBALANCE = 2;
+  METRIC_TYPE_MICROPRICE = 3;
+  METRIC_TYPE_SHORT_TERM_VOLATILITY = 4;
+  METRIC_TYPE_TRADE_FLOW = 5;
+  METRIC_TYPE_FUNDING = 6;
+}
+
+message MetricValue {
+  oneof value {
+    SpreadValue spread = 1;
+    ObiValue obi = 2;
+    MicropriceValue microprice = 3;
+    VolatilityValue volatility = 4;
+    TradeFlowValue trade_flow = 5;
+    FundingValue funding = 6;
+  }
+}
+
+message SpreadValue {
+  int64 spread_abs = 1;
+  int64 spread_bps = 2;
+}
+
+message ObiValue {
+  int64 obi_value = 1;
+}
+
+message MicropriceValue {
+  int64 microprice = 1;
+  int64 microprice_bps = 2;
+}
+
+message VolatilityValue {
+  int64 vol_bps = 1;
+}
+
+message TradeFlowValue {
+  int64 net_flow = 1;
+  int64 flow_ratio = 2;
+}
+
+message FundingValue {
+  int64 funding_rate_bps_per_hour = 1;
+}
+
+enum MetricFlag {
+  METRIC_FLAG_UNSPECIFIED = 0;
+  METRIC_FLAG_LOW_CONFIDENCE = 1;
+  METRIC_FLAG_STALE = 2;
+  METRIC_FLAG_LOW_LIQUIDITY = 3;
+  METRIC_FLAG_WIDE_SPREAD = 4;
+  METRIC_FLAG_VOL_SPIKE = 5;
+  METRIC_FLAG_SPOOF_SUSPECT = 6;
+  METRIC_FLAG_LOW_SAMPLE = 7;
+  METRIC_FLAG_NO_TOP_OF_BOOK = 8;
+  METRIC_FLAG_LOW_TOP_SIZE = 9;
+  METRIC_FLAG_DEPTH_CONCENTRATED = 10;
+  METRIC_FLAG_UNSTABLE_IMBALANCE = 11;
+  METRIC_FLAG_SPREAD_TOO_WIDE = 12;
+  METRIC_FLAG_INSUFFICIENT_DATA = 13;
+  METRIC_FLAG_LOW_TRADE_ACTIVITY = 14;
+  METRIC_FLAG_WASH_TRADE_SUSPECT = 15;
+  METRIC_FLAG_NO_TRADES = 16;
+  METRIC_FLAG_STALE_FUNDING = 17;
+  METRIC_FLAG_FAKE_TIGHT_BOOK = 18;
+  METRIC_FLAG_METRICS_UNRELIABLE = 19;
+  METRIC_FLAG_EMPTY_DEPTH = 20;
+  METRIC_FLAG_EXTREME_FUNDING = 21;
+  METRIC_FLAG_NEAR_SETTLEMENT = 22;
+}
+
+message MarketStateSnapshot {
+  uint32 exchange_id = 1;
+  uint32 market_id = 2;
+  MarketState state = 3;
+  double liquidity_score = 4;
+  double stability_score = 5;
+  double confidence = 6;
+  repeated ClassificationReason reasons = 7;
+  repeated MetricFlag flags = 8;
+  int64 ts = 9;
+}
+
+enum MarketState {
+  MARKET_STATE_UNSPECIFIED = 0;
+  MARKET_STATE_STABLE = 1;
+  MARKET_STATE_VOLATILE = 2;
+  MARKET_STATE_ILLIQUID = 3;
+  MARKET_STATE_SIDEWAY = 4;
+  MARKET_STATE_TREND = 5;
+}
+
+message ClassificationReason {
+  oneof reason {
+    StableConditionsMet stable_conditions_met = 1;
+    TransitionConfirmed transition_confirmed = 2;
+    GoodSpread good_spread = 3;
+    HighTradeActivity high_trade_activity = 4;
+    BalancedFlow balanced_flow = 5;
+    LowVolatility low_volatility = 6;
+    SufficientTopSize sufficient_top_size = 7;
+    IlliquidConditionsMet illiquid_conditions_met = 8;
+    WideSpread wide_spread = 9;
+    LowTradeActivity low_trade_activity = 10;
+    UnbalancedFlow unbalanced_flow = 11;
+    InsufficientTopSize insufficient_top_size = 12;
+    VolatileConditionsMet volatile_conditions_met = 13;
+    HighVolatility high_volatility = 14;
+    VolSpike vol_spike = 15;
+    FallbackToIlliquid fallback_to_illiquid = 16;
+  }
+}
+
+message StableConditionsMet {}
+message TransitionConfirmed { int64 elapsed_ms = 1; }
+message GoodSpread { int64 spread_bps = 1; }
+message HighTradeActivity { int64 trade_count = 1; }
+message BalancedFlow { int64 flow_ratio = 1; }
+message LowVolatility { int64 vol_bps = 1; }
+message SufficientTopSize { int64 top_size = 1; }
+message IlliquidConditionsMet {}
+message WideSpread { int64 spread_bps = 1; }
+message LowTradeActivity { int64 trade_count = 1; }
+message UnbalancedFlow { int64 flow_ratio = 1; }
+message InsufficientTopSize { int64 top_size = 1; }
+message VolatileConditionsMet {}
+message HighVolatility { int64 vol_bps = 1; }
+message VolSpike { int64 vol_bps = 1; }
+message FallbackToIlliquid { string reason = 1; }
+
+message ActionConstraints {
+  bool allow_new_orders = 1;
+  bool allow_reduce_only = 2;
+  bool allow_market_orders = 3;
+  bool allow_passive_orders = 4;
+  int64 max_order_size_ratio = 5;
+  int64 max_notional_per_min = 6;
+  int64 max_book_impact_bps = 7;
+  uint64 min_cooldown_ms = 8;
+  repeated OrderType allowed_order_types = 9;
+  bool emergency_only = 10;
+  double confidence = 11;
+  repeated string reasons = 12;
+  int64 ts = 13;
+}
+
+enum OrderType {
+  ORDER_TYPE_UNSPECIFIED = 0;
+  ORDER_TYPE_LIMIT = 1;
+  ORDER_TYPE_MARKET = 2;
+  ORDER_TYPE_PEG = 3;
+  ORDER_TYPE_IOC = 4;
+}
+
+message MarketRegimeSnapshot {
+  uint32 exchange_id = 1;
+  uint32 market_id = 2;
+  int64 timeframe_ms = 3;
+  Regime regime = 4;
+  Direction direction = 5;
+  VolLevel volatility_level = 6;
+  int64 confidence = 7;
+  UniversalFeatures features = 8;
+  RegimeMetrics metrics = 9;
+  DataQualityFlags flags = 10;
+  int64 ts = 11;
+}
+
+enum Regime {
+  REGIME_UNSPECIFIED = 0;
+  REGIME_SIDEWAY = 1;
+  REGIME_UPTREND = 2;
+  REGIME_DOWNTREND = 3;
+  REGIME_VOLATILE_UP = 4;
+  REGIME_VOLATILE_DOWN = 5;
+  REGIME_VOLATILE_CHOP = 6;
+}
+
+enum Direction {
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_UP = 1;
+  DIRECTION_DOWN = 2;
+  DIRECTION_FLAT = 3;
+}
+
+enum VolLevel {
+  VOL_LEVEL_UNSPECIFIED = 0;
+  VOL_LEVEL_LOW = 1;
+  VOL_LEVEL_NORMAL = 2;
+  VOL_LEVEL_HIGH = 3;
+}
+
+message UniversalFeatures {
+  int64 rv = 1;
+  int64 raw_range_width = 2;
+  int64 ema_slope = 3;
+  int64 trend_strength = 4;
+  int64 spread_bps = 5;
+  int64 micro_disloc = 6;
+  int64 liquidity_score = 7;
+  int64 jump_score = 8;
+}
+
+message RegimeMetrics {
+  oneof metrics {
+    SidewayMetrics sideway = 1;
+    TrendMetrics trend = 2;
+    VolatileTrendMetrics volatile_trend = 3;
+    VolatileChopMetrics volatile_chop = 4;
+  }
+}
+
+message SidewayMetrics {
+  optional SidewayRange range = 1;
+  optional int64 range_position = 2;
+  optional int64 breakout_above = 3;
+  optional int64 breakout_below = 4;
+}
+
+message SidewayRange {
+  int64 low = 1;
+  int64 high = 2;
+  int64 mid = 3;
+  int64 width = 4;
+  uint32 touches_low = 5;
+  uint32 touches_high = 6;
+  int64 inside_ratio = 7;
+  int64 strength = 8;
+  int64 frozen_until = 9;
+  int64 last_updated = 10;
+}
+
+message TrendMetrics {
+  Direction direction = 1;
+  int64 channel_upper = 2;
+  int64 channel_mid = 3;
+  int64 channel_lower = 4;
+  int64 pullback_depth = 5;
+  optional int64 sr_support = 6;
+  optional int64 sr_resistance = 7;
+}
+
+message VolatileTrendMetrics {
+  Direction direction = 1;
+  int64 rv = 2;
+  int64 jump_score = 3;
+  int64 spread_bps = 4;
+  int64 liquidity_score = 5;
+  int64 expected_slippage_bps = 6;
+  bool no_trade_zone = 7;
+}
+
+message VolatileChopMetrics {
+  int64 rv = 1;
+  int64 jump_score = 2;
+  int64 chop_score = 3;
+  bool no_trade_recommendation = 4;
+}
+
+message DataQualityFlags {
+  bool stale = 1;
+  bool gap = 2;
+  bool crossed_book = 3;
+  bool illiquid = 4;
+}

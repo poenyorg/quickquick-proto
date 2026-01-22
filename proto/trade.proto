@@ -49,14 +49,14 @@ service Trade {
 /// Indicates whether the order was accepted by the trading engine (not final execution status).
 message StreamPlaceOrderReply {
     bool is_ok = 1;      /// True if order was accepted, false if validation failed
-    string msg = 2;      /// Acknowledgment message or error description
+    optional string msg = 2;      /// Acknowledgment message or error description
 }
 
 /// StreamCancelReply acknowledges receipt of a cancellation request in streaming mode.
 /// Indicates whether the cancellation was accepted by the trading engine.
 message StreamCancelReply {
     bool is_ok = 1;      /// True if cancellation was accepted, false if validation failed
-    string msg = 2;      /// Acknowledgment message or error description
+    optional string msg = 2;      /// Acknowledgment message or error description
 }
 
 /// RequestPlaceOrder contains all parameters needed to place a single order.

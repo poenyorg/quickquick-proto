@@ -27,3 +27,7 @@ pub mod risk_management {
 pub mod order_notify {
     tonic::include_proto!("order_notify");
 }
+
+pub mod market_metrics {
+    tonic::include_proto!("market_metrics");
+}

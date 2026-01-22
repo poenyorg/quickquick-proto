@@ -12,6 +12,7 @@ fn main() {
                 "../../proto/price_aggregator.proto",
                 "../../proto/risk_management.proto",
                 "../../proto/order_notify.proto",
+                "../../proto/market_metrics.proto",
             ],
             &["../../proto"],
         )
