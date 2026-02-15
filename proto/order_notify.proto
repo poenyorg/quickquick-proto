@@ -12,4 +12,5 @@ service OrderNotifyService {
 message OrderStatusReply {
     string cloid = 1;   
     exchange.OrderStatus status = 2;
+    int64 filled = 3;
 }

@@ -18,12 +18,11 @@ service RiskManagement {
 /// Includes session information, exchange context, and all account components (balances, positions, orders).
 /// Each message represents the full account state - previous state should be replaced entirely.
 message AccountStateReply {
-    string session_id = 1;              /// Unique session identifier for this trading session
-    uint32 exchange_id = 2;             /// Exchange identifier for which this state applies
-    int64 balance = 3;                  /// Total account balance in base currency (e.g., USDC)
-    repeated PositionInfo positions = 4; /// All active positions across all markets
-    repeated AssetInfo assets = 5;      /// All asset holdings (wallet balances by asset type)
-    repeated OrderInfo orders = 6;      /// All pending orders waiting to be filled or canceled
+    uint32 exchange_id = 1;             /// Exchange identifier for which this state applies
+    int64 balance = 2;                  /// Total account balance in base currency (e.g., USDC)
+    repeated PositionInfo positions = 3; /// All active positions across all markets
+    repeated AssetInfo assets = 4;      /// All asset holdings (wallet balances by asset type)
+    repeated OrderInfo orders = 5;      /// All pending orders waiting to be filled or canceled
 }
 
 /// PositionInfo represents a single open position in a market.
