@@ -167,3 +167,7 @@ message HealthUpdateReply {
     HealthStatus health     = 2;  // Full computed health result
     int64        ts         = 3;  // Unix ms when this message was emitted
 }
+
+message BatchHealthUpdateReply {
+    repeated HealthUpdateReply health_update = 1;
+}
