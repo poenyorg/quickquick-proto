@@ -60,6 +60,8 @@ message HealthStatus {
     HealthSignal signal        = 1;  // Classified signal level
     int64        margin_ratio_bps = 2;  // (balance / total_notional) * 10_000; MAX when no positions
     int64        calculated_at = 3;  // Unix ms when this result was produced
+    int64        total_notional = 4;
+    int64        balance = 5;
 }
 
 // ---------------------------------------------------------------------------
