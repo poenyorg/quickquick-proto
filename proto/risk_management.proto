@@ -3,50 +3,165 @@ import "exchange.proto";
 import "google/protobuf/empty.proto";
 package risk_management;
 
-/// RiskManagement service provides real-time account state monitoring for risk management systems.
-/// Streams complete account snapshots including balances, positions, assets, and pending orders.
-/// Used by risk controllers to monitor and enforce position limits, margin requirements, and exposure controls.
+
+// RiskEngineService exposes account state, inventory aggregation, pre-inventory
+// configuration, and real-time health updates built from User service data.
+//
+// All monetary and size values use the wire integer format consistent with the
+// rest of the system (Fixed::to_wire / Fixed::from_wire). Callers must convert
+// using Fixed::from_wire before arithmetic.
+//
+// Timestamps are Unix milliseconds (i64).
 service RiskManagement {
-    /// SubscribeAccountState provides a continuous stream of complete account state updates.
-    /// Each update contains a full snapshot of balances, positions, assets, and orders at that moment.
-    /// Stream continues until client disconnects or server closes the connection.
-    /// Updates are sent whenever any component of the account state changes (balance, position, order).
-    rpc SubscribeAccountState(google.protobuf.Empty) returns (stream AccountStateReply);
+
+    // GetAccountInfo returns a full snapshot of one or more accounts including
+    // assets, open positions, pending orders, and current health status.
+    // Pass an empty account_ids list to receive all tracked accounts.
+    rpc GetAccountInfo(GetAccountInfoRequest) returns (AccountInfoReply);
+
+    // GetInventorySummary returns the system-wide net inventory aggregated
+    // across all accounts and all assets, combined with the global
+    // pre-inventory offset for each asset.
+    rpc GetInventorySummary(google.protobuf.Empty) returns (InventorySummaryReply);
+
+    // GetPreInventory returns the current global pre-inventory configuration —
+    // one entry per asset. This is a static operator-configured offset, not
+    // tied to any individual account.
+    rpc GetPreInventory(google.protobuf.Empty) returns (PreInventoryReply);
+
+    // StreamHealthUpdate is an open server-side stream. The server pushes a
+    // HealthUpdateReply every time the health calculator produces a new result
+    // for any account. Clients receive updates for all accounts; filtering is
+    // the caller's responsibility.
+    rpc StreamHealthUpdate(google.protobuf.Empty) returns (stream HealthUpdateReply);
+
+    // StreamPreInventory is an open server-side stream. On connection the
+    // server immediately sends the full current GlobalPreInventory snapshot.
+    // Subsequently, a new full snapshot is pushed whenever the pre-inventory
+    // configuration changes via the HTTP management API.
+    // Each message is a complete snapshot, not a delta.
+    rpc StreamPreInventory(google.protobuf.Empty) returns (stream PreInventoryReply);
 }
 
-/// AccountStateReply contains a complete snapshot of the account state at a point in time.
-/// Includes session information, exchange context, and all account components (balances, positions, orders).
-/// Each message represents the full account state - previous state should be replaced entirely.
-message AccountStateReply {
-    string session_id = 1;              /// Unique session identifier for this trading session
-    uint32 exchange_id = 2;             /// Exchange identifier for which this state applies
-    int64 balance = 3;                  /// Total account balance in base currency (e.g., USDC)
-    repeated PositionInfo positions = 4; /// All active positions across all markets
-    repeated AssetInfo assets = 5;      /// All asset holdings (wallet balances by asset type)
-    repeated OrderInfo orders = 6;      /// All pending orders waiting to be filled or canceled
+// ---------------------------------------------------------------------------
+// Shared scalar types
+// ---------------------------------------------------------------------------
+
+// HealthSignal summarises the margin health of a single account.
+enum HealthSignal {
+    HEALTH_SIGNAL_UNKNOWN   = 0;  // No data yet or stream is stale
+    HEALTH_SIGNAL_HEALTHY   = 1;  // margin_ratio_bps > warning threshold
+    HEALTH_SIGNAL_WARNING   = 2;  // critical threshold < ratio <= warning threshold
+    HEALTH_SIGNAL_CRITICAL  = 3;  // margin_ratio_bps <= critical threshold
 }
 
-/// PositionInfo represents a single open position in a market.
-/// Used in risk management to track exposure, calculate margin requirements, and monitor leverage.
+// HealthStatus is the computed health result for one account at one instant.
+message HealthStatus {
+    HealthSignal signal        = 1;  // Classified signal level
+    int64        margin_ratio_bps = 2;  // (balance / total_notional) * 10_000; MAX when no positions
+    int64        calculated_at = 3;  // Unix ms when this result was produced
+}
+
+// ---------------------------------------------------------------------------
+// GetAccountInfo
+// ---------------------------------------------------------------------------
+
+message GetAccountInfoRequest {
+    // List of account identifiers to query.
+    // Empty list means "return all tracked accounts".
+    repeated string account_ids = 1;
+}
+
+message AccountInfoReply {
+    repeated AccountInfo accounts = 1;
+}
+
+// AccountInfo is a point-in-time snapshot of one tracked account.
+// Pre-inventory is intentionally absent — it is a global offset, not
+// per-account. Use GetInventorySummary to see the combined view.
+message AccountInfo {
+    string account_id          = 1;  // Stable identifier used as the store key
+    uint32 exchange_id         = 2;  // Exchange this account belongs to
+    int64  total_wallet_balance = 3; // Sum of all asset balances in base currency (wire)
+    int64  available_balance   = 4;  // Balance available for new orders (wire)
+    repeated AssetBalance  assets   = 5;  // Per-asset wallet balances
+    repeated PositionInfo  positions = 6; // All currently open positions
+    repeated PendingOrder  orders   = 7;  // All orders not yet fully filled or cancelled
+    HealthStatus           health   = 8;  // Latest computed health status
+    bool                   is_stale = 9;  // True while upstream stream is reconnecting
+    int64                  updated_at = 10; // Unix ms of last applied event
+}
+
+// AssetBalance holds the current wallet balance for one asset.
+message AssetBalance {
+    uint32 asset_id = 1;  // Asset identifier
+    int64  amount   = 2;  // Current balance (wire)
+}
+
+// PositionInfo describes one open position.
 message PositionInfo {
-    uint32 market_id = 1;    /// Market/trading pair identifier
-    int64 size = 2;          /// Position size (positive for long, negative for short)
-    int64 entry_price = 3;   /// Average entry price used for P&L calculation (in quote asset units)
+    uint32 market_id   = 1;  // Market identifier
+    int64  size        = 2;  // Positive = long, negative = short (wire)
+    int64  entry_price = 3;  // Average entry price (wire)
 }
 
-/// AssetInfo represents the balance of a single asset in the account wallet.
-/// Different from positions - these are unencumbered asset holdings, not trading positions.
-message AssetInfo {
-    uint32 asset_id = 1;     /// Asset identifier (e.g., USDC token ID, BTC token ID)
-    int64 amount = 2;        /// Current balance of this asset (in smallest unit)
+// PendingOrder is an order that has not reached a terminal state.
+message PendingOrder {
+    string order_id  = 1;  // Exchange-assigned order ID
+    string cloid     = 2;  // Client order ID
+    uint32 market_id = 3;  // Market identifier
+    int64  size      = 4;  // Original order size (wire)
+    int64  filled    = 5;  // Cumulative filled amount (wire)
+    int64  price     = 6;  // Order price (wire)
+    exchange.OrderStatus status = 7;
 }
 
-/// OrderInfo represents a single pending order in the account.
-/// Used by risk management systems to account for margin requirements and exposure from pending orders.
-message OrderInfo {
-    string cloid = 1;         /// Client-assigned order ID for tracking and correlation
-    uint32 market_id = 2;     /// Market/trading pair identifier
-    int64 size = 3;           /// Order quantity (positive for buy, negative for sell; in base asset units)
-    int64 price = 4;          /// Order price (in quote asset units)
-    bool reduce_only = 5;     /// If true, this order can only close positions, not open new ones
+// ---------------------------------------------------------------------------
+// GetInventorySummary
+// ---------------------------------------------------------------------------
+
+message InventorySummaryReply {
+    repeated AssetInventory assets = 1;  // One entry per asset present in the system
+}
+
+// AssetInventory shows the full net inventory breakdown for one asset,
+// aggregated across all accounts, with the global pre-inventory offset applied.
+//
+// Net formula:
+//   net_total = total_asset_amount + total_position_notional + pre_inventory
+message AssetInventory {
+    uint32 asset_id               = 1;  // Asset identifier
+    int64  total_asset_amount     = 2;  // Sum of wallet balances across all accounts (wire)
+    int64  total_position_notional = 3; // Sum of position notional for this asset across all accounts (wire)
+    int64  pre_inventory          = 4;  // Global configured offset for this asset (wire)
+    int64  net_total              = 5;  // Computed net (wire)
+}
+
+// ---------------------------------------------------------------------------
+// GetPreInventory / StreamPreInventory
+// ---------------------------------------------------------------------------
+
+message PreInventoryReply {
+    repeated PreInventoryEntry entries = 1;  // One entry per configured asset
+}
+
+// PreInventoryEntry is the operator-configured net offset for one asset.
+// This is a global value — it is not scoped to any account.
+message PreInventoryEntry {
+    uint32 asset_id = 1;  // Asset identifier
+    int64  amount   = 2;  // Configured net offset (wire); may be negative
+    string label    = 3;  // Human-readable description, e.g. "operational reserve"
+}
+
+// ---------------------------------------------------------------------------
+// StreamHealthUpdate
+// ---------------------------------------------------------------------------
+
+// HealthUpdateReply is emitted by the health calculator after every interval
+// tick for every account. The full HealthStatus is included so subscribers
+// do not need to maintain previous state.
+message HealthUpdateReply {
+    string       account_id = 1;  // Account this update relates to
+    HealthStatus health     = 2;  // Full computed health result
+    int64        ts         = 3;  // Unix ms when this message was emitted
 }
