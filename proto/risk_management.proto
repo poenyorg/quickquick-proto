@@ -71,7 +71,7 @@ message HealthStatus {
 message GetAccountInfoRequest {
     // List of account identifiers to query.
     // Empty list means "return all tracked accounts".
-    repeated string account_ids = 1;
+    repeated uint32 exchange_ids = 1;
 }
 
 message AccountInfoReply {
@@ -163,7 +163,7 @@ message PreInventoryEntry {
 // tick for every account. The full HealthStatus is included so subscribers
 // do not need to maintain previous state.
 message HealthUpdateReply {
-    string       account_id = 1;  // Account this update relates to
+    uint32       exchange_id = 1;  // Exchange this update relates to
     HealthStatus health     = 2;  // Full computed health result
     int64        ts         = 3;  // Unix ms when this message was emitted
 }
