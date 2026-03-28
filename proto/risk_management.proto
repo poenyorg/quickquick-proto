@@ -35,12 +35,17 @@ service RiskManagement {
     // the caller's responsibility.
     rpc StreamHealthUpdate(google.protobuf.Empty) returns (stream HealthUpdateReply);
 
-    // StreamPreInventory is an open server-side stream. On connection the
+    // StreamInventory is an open server-side stream. On connection the
     // server immediately sends the full current GlobalPreInventory snapshot.
     // Subsequently, a new full snapshot is pushed whenever the pre-inventory
     // configuration changes via the HTTP management API.
     // Each message is a complete snapshot, not a delta.
-    rpc StreamPreInventory(google.protobuf.Empty) returns (stream PreInventoryReply);
+    rpc StreamInventory(google.protobuf.Empty) returns (stream InventorySummaryReply);
+
+    // StreamAccountInfo returns a full snapshot of one or more accounts including
+    // assets, open positions, pending orders, and current health status.
+    // Pass an empty account_ids list to receive all tracked accounts.
+    rpc StreamAccountInfo(GetAccountInfoRequest) returns (stream AccountInfoReply);
 }
 
 // ---------------------------------------------------------------------------
@@ -130,17 +135,16 @@ message InventorySummaryReply {
 // aggregated across all accounts, with the global pre-inventory offset applied.
 //
 // Net formula:
-//   net_total = total_asset_amount + total_position_notional + pre_inventory
+//   net_total = total_asset_amount + total_perp_size + pre_inventory
 message AssetInventory {
     uint32 asset_id               = 1;  // Asset identifier
     int64  total_asset_amount     = 2;  // Sum of wallet balances across all accounts (wire)
-    int64  total_position_notional = 3; // Sum of position notional for this asset across all accounts (wire)
+    int64  total_perp_size = 3; // Sum of position notional for this asset across all accounts (wire)
     int64  pre_inventory          = 4;  // Global configured offset for this asset (wire)
-    int64  net_total              = 5;  // Computed net (wire)
 }
 
 // ---------------------------------------------------------------------------
-// GetPreInventory / StreamPreInventory
+// GetPreInventory / StreamInventory
 // ---------------------------------------------------------------------------
 
 message PreInventoryReply {
