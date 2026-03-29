@@ -1,6 +1,6 @@
 [package]
 name = "trading_grpc_server"
-version = "0.1.284"
+version = "0.1.29"
 edition = "2024"
 build = "build.rs"
 
