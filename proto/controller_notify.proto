@@ -39,7 +39,7 @@ message OrderProposal {
 /// NewOrdersProposal groups multiple orders into base and hedge orders.
 /// Supports conditional hedging based on spread constraints.
 message NewOrdersProposal {
-    repeated NewOrderProposal base_orders = 1;   /// Primary trading orders
+    repeated NewOrderProposal orders = 1;   /// Primary trading orders
     int64 event_timestamp = 2;
 }
 
