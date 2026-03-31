@@ -16,9 +16,16 @@ service ControllerNotifyService {
     rpc AutoCancelOrders(AutoCancelOrdersProposal) returns (google.protobuf.Empty);
 }
 
+message NewOrderProposal {
+    OrderProposal base_order = 1;             
+    optional OrderProposal hedge_order = 2;
+    bool use_dynamic_hedge = 3;
+    int64 max_spread = 4;        
+}
+
 /// NewOrderProposal represents a single order to be placed.
 /// Contains exchange, market, size, price, and risk management flags.
-message NewOrderProposal {
+message OrderProposal {
     uint32 exchange_id = 1;              /// Exchange identifier
     uint32 market_id = 2;                /// Market/trading pair identifier
     int64 size = 3;                      /// Order quantity (in base asset units)
@@ -33,19 +40,7 @@ message NewOrderProposal {
 /// Supports conditional hedging based on spread constraints.
 message NewOrdersProposal {
     repeated NewOrderProposal base_orders = 1;   /// Primary trading orders
-    repeated NewOrderProposal hedge_orders = 2;  /// Hedging orders (optional)
-    bool no_hedge = 3;                           /// If true, ignore hedge_orders, if no_hedge = false and hedge_orders = empty => use hedge advanced
-    int64 max_spread = 4;                        /// Maximum acceptable spread between base and hedge prices
-    uint64 id = 5;
-}
-
-/// CancelOrdersProposal defines price-based cancellation criteria.
-/// Cancels all orders within the specified price range for a market.
-message CancelOrdersProposal {
-    int64 max_price_for_buy = 1;   /// Cancel buy orders below this price threshold
-    int64 min_price_for_sell = 2;  /// Cancel sell orders above this price threshold
-    uint32 exchange_id = 3;         /// Target exchange
-    uint32 market_id = 4;           /// Target market
+    int64 event_timestamp = 2;
 }
 
 /// AutoCancelOrdersProposal triggers automatic cancellation with a countdown timer.
@@ -62,22 +57,16 @@ message CancelOrdersByCloidProposal {
     repeated string cloids = 1;  /// List of client order IDs to cancel
 }
 
-/// HandleOrdersProposal combines order placement and cancellation in a single atomic operation.
-/// Both new orders and cancellations are processed together with a timestamp.
-message HandleOrdersProposal {
-    NewOrdersProposal new_orders = 1;              /// Orders to place
-    repeated CancelOrdersProposal cancel_orders = 2; /// Orders to cancel (multiple by price range)
-    int64 event_timestamp = 3;                     /// Timestamp of this proposal for ordering and audit
-}
-
 /// StreamProposal is the main message wrapper for bidirectional streaming.
 /// Uses oneof to represent three distinct proposal types.
 message StreamProposal {
+    uint64 id = 1;
     oneof payload {
-        HandleOrdersProposal handle_order_proposal = 1;           /// Combined order handling proposal
-        AutoCancelOrdersProposal auto_cancel_orders_proposal = 2; /// Auto-cancel with countdown
-        CancelOrdersByCloidProposal cancel_orders_cloid = 3;      /// Cancel by client order IDs
-    }
+        NewOrdersProposal new_order_proposal = 2;           /// Combined order handling proposal
+        AutoCancelOrdersProposal auto_cancel_orders_proposal = 3; /// Auto-cancel with countdown
+        CancelOrdersByCloidProposal cancel_orders_cloid = 4;      /// Cancel by client order IDs
+    };
+   
 }
 
 /// StreamProposalResponse acknowledges receipt of a proposal.
