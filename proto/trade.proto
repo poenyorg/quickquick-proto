@@ -68,6 +68,7 @@ message RequestPlaceOrder {
     bool reduce_only = 5;               /// If true, order can only close positions, not open new ones
     int64 timestamp = 6;                /// Order creation timestamp (milliseconds since epoch); used for ordering
     string cloid = 7;                   /// Client-assigned order ID for tracking and cancellation by reference
+    bool is_update = 8;
 }
 
 /// PlaceOrderReply contains the result of a single order placement request.
