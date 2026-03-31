@@ -36,6 +36,7 @@ message NewOrdersProposal {
     repeated NewOrderProposal hedge_orders = 2;  /// Hedging orders (optional)
     bool no_hedge = 3;                           /// If true, ignore hedge_orders, if no_hedge = false and hedge_orders = empty => use hedge advanced
     int64 max_spread = 4;                        /// Maximum acceptable spread between base and hedge prices
+    uint64 id = 5;
 }
 
 /// CancelOrdersProposal defines price-based cancellation criteria.
@@ -82,5 +83,6 @@ message StreamProposal {
 /// StreamProposalResponse acknowledges receipt of a proposal.
 /// The counter helps clients track which proposals have been acknowledged.
 message StreamProposalResponse {
-    uint64 counter = 1;  /// Sequence counter for correlation with sent proposals
+    uint64 id = 1;  /// Sequence counter for correlation with sent proposals
+    bool is_success = 2;
 }
