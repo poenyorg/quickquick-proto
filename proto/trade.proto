@@ -75,12 +75,12 @@ message RequestPlaceOrder {
 /// PlaceOrderReply contains the result of a single order placement request.
 /// Returned immediately after order is submitted to the exchange (not final execution status).
 message PlaceOrderReply {
-    string order_id = 1;                /// Exchange-assigned unique order identifier (empty if rejected)
+    int64 code = 1;                     /// Error code if placement failed (0 = success)
     exchange.OrderStatus status = 2;    /// Current order status (usually NEW or REJECTED upon submission)
-    uint32 market_id = 3;               /// Market/trading pair identifier
-    int64 code = 4;                     /// Error code if placement failed (0 = success)
-    string msg = 5;                     /// Success message or error description
-    string cloid = 6;                   /// Client-assigned order ID (echoed back for correlation)
+    optional uint32 market_id = 3;               /// Market/trading pair identifier
+    optional string order_id = 4;                /// Exchange-assigned unique order identifier (empty if rejected)
+    optional string cloid = 5;                   /// Client-assigned order ID (echoed back for correlation)
+    optional string msg = 6;                     /// Success message or error description
 }
 
 /// RequestPlaceOrders groups multiple order placement requests.
@@ -99,17 +99,17 @@ message PlaceOrdersReply {
 /// Identify the order using either order_id (exchange-assigned) or cloid (client-assigned).
 message RequestCancelOrder {
     uint32 market_id = 1;   /// Market/trading pair identifier
-    string order_id = 2;    /// Exchange-assigned order ID (use this or cloid, not both)
-    string cloid = 3;       /// Client-assigned order ID (use this or order_id, not both)
-    int64 timestamp = 4;    /// Cancellation request timestamp (milliseconds since epoch)
+    int64 timestamp = 2;    /// Cancellation request timestamp (milliseconds since epoch)
+    optional string order_id = 3;    /// Exchange-assigned order ID (use this or cloid, not both)
+    optional string cloid = 4;       /// Client-assigned order ID (use this or order_id, not both)
 }
 
 /// CancelOrderReply contains the result of a single order cancellation request.
 /// Returned immediately after cancellation is submitted to the exchange.
 message CancelOrderReply {
-    string order_id = 1;              /// Exchange-assigned order identifier
-    exchange.OrderStatus status = 2;  /// Order status after cancellation attempt (usually CANCELED)
-    uint32 code = 3;                  /// Error code if cancellation failed (0 = success)
+    exchange.OrderStatus status = 1;  /// Order status after cancellation attempt (usually CANCELED)
+    uint32 code = 2;                  /// Error code if cancellation failed (0 = success)
+    optional string order_id = 3;              /// Exchange-assigned order identifier
 }
 
 /// RequestCancelOrders groups multiple cancellation requests.
