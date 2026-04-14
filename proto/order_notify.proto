@@ -6,7 +6,13 @@ package order_notify;
 
 
 service OrderNotifyService {
-    rpc SubscribeOrderStatus(google.protobuf.Empty) returns (stream OrderStatusReply);
+    rpc SubscribeOrderStatus(RequestOrderStatus) returns (stream OrderStatusReply);
+}
+
+// Request by conditions: include exchange_ids AND market_ids
+message RequestOrderStatus {
+    repeated uint32 exchange_ids = 1;
+    repeated uint32 market_ids = 2;  /// List of market identifiers to subscribe to (e.g., BTC/USDC, ETH/USDC)
 }
 
 message OrderStatusReply {
