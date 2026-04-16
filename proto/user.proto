@@ -37,6 +37,7 @@ message AccountUpdateEventReply {
         BatchOrderUpdate orders_update = 2;             /// Multiple orders changed simultaneously
         BatchPositionUpdate positions_update = 3;       /// Multiple positions changed simultaneously
         BalanceChanged balance_changed = 4;             /// Asset balance change
+        OrderFills order_fills = 5;
       }
 }
 
@@ -155,4 +156,19 @@ message AccountAssetBalance {
     uint32 asset_id = 1;      /// Asset identifier (e.g., USDC token ID, BTC token ID)
     int64 balance = 2;        /// Current balance of this asset (in smallest unit)
     int64 update_time = 3;    /// Timestamp of last balance update (milliseconds since epoch)
+}
+
+message OrderFills {
+    repeated OrderFill = 1;
+}
+message OrderFill {
+    optional string id = 1;                    /// Exchange-assigned unique order identifier
+    string cloid = 2;                 /// Client-assigned order ID for tracking
+    uint32 market_id = 3;             /// Market/trading pair identifier
+    int64 size = 4;                   /// Order quantity (in base asset units)
+    int64 price = 5;                  /// Order price (in quote asset units)
+    int64 closed_pnl = 6;
+    int64 fee = 7;
+    int64 timestamp = 8;              /// Order placement timestamp (milliseconds since epoch)
+    
 }
