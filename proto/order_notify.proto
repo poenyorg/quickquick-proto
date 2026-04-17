@@ -18,7 +18,7 @@ message RequestOrderStatus {
 message OrderStatusReply {
     string cloid = 1;   
     exchange.OrderStatus status = 2;
-    int64 remaining_size = 3;
+    int64 last_filled_size = 3;
     uint32 market_id = 4;
     uint32 exchange_id = 5;
     optional uint32 code = 6;
