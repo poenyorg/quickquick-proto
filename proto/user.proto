@@ -165,7 +165,7 @@ message OrderFills {
 message OrderFill {
     int64 size = 1;               /// Original order size (in base asset units)
     int64 price = 2;              /// Order price (in quote asset units)
-    int64 closedPnl = 3;
+    int64 closed_pnl = 3;
     int64 fee = 4;
     uint32 market_id = 5;         /// Market/trading pair identifier
     int64 evt_time = 6;
