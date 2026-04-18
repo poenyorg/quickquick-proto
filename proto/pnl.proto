@@ -1,0 +1,98 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+package pnl;
+
+// All monetary and size values use the wire integer format consistent with the
+// rest of the system (Fixed::to_wire / Fixed::from_wire). Callers must convert
+// using Fixed::from_wire before arithmetic.
+//
+// Timestamps are Unix milliseconds (i64).
+// Basis-point values (bps) are scaled by 10_000: 1 bps = Fixed::from_wire(10_000).
+service PnlService {
+
+    // GetPnlSnapshot returns a point-in-time per-market PnL snapshot for the
+    // requested accounts. Pass an empty exchange_ids list for all accounts.
+    rpc GetPnlSnapshot(GetPnlRequest) returns (PnlSnapshotReply);
+
+    // StreamPnlUpdate is an open server-side stream. The first message after
+    // connection is always the current full snapshot. Subsequent messages are
+    // pushed whenever any market's PnL state changes.
+    rpc StreamPnlUpdate(GetPnlRequest) returns (stream PnlUpdateReply);
+}
+
+// ---------------------------------------------------------------------------
+// Request
+// ---------------------------------------------------------------------------
+
+message GetPnlRequest {
+    repeated uint32 exchange_ids = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Snapshot
+// ---------------------------------------------------------------------------
+
+message PnlSnapshotReply {
+    repeated MarketPnl markets    = 1;
+    int64              snapshot_at = 2;  // Unix ms
+}
+
+// MarketPnl is a full PnL breakdown for one market on one exchange.
+message MarketPnl {
+    uint32 exchange_id        = 1;
+    uint32 market_id          = 2;
+    int64  position_size      = 3;   // Net position; positive = long, negative = short (wire)
+    int64  entry_price        = 4;   // Average entry price of the current position (wire); 0 if flat
+    int64  mark_price         = 5;   // Mark price used to compute unrealized_pnl (wire)
+    int64  vwap_entry         = 6;   // Volume-weighted average entry price (wire)
+    int64  realized_pnl       = 7;   // Cumulative closed PnL for this market (wire)
+    int64  unrealized_pnl     = 8;   // Mark-to-market PnL on current open position (wire)
+    int64  total_pnl          = 9;   // realized + unrealized (wire)
+    int64  unrealized_pnl_bps = 10;  // (mark - vwap) / vwap × 10_000 × side_sign (wire)
+    uint64 hold_time_ms       = 11;  // Milliseconds since first fill opened the current position
+    repeated WindowMetrics    windows  = 12;  // Rolling window metrics; 6 windows: 15s/60s/300s/900s/3600s/86400s
+    repeated MarkoutHorizon   markouts = 13;  // Markout avg per horizon; 4 horizons: 15s/30s/60s/300s
+    int64                     calculated_at = 14;  // Unix ms when this snapshot was computed
+}
+
+// ---------------------------------------------------------------------------
+// Rolling time windows
+// ---------------------------------------------------------------------------
+
+// WindowMetrics contains aggregated fill statistics for one rolling time window.
+// window_sec identifies the window duration (15, 60, 300, 900, 3600, 86400).
+message WindowMetrics {
+    uint64 window_sec    = 1;
+    uint64 fill_count    = 2;
+    int64  buy_volume    = 3;   // Cumulative buy notional in this window (wire)
+    int64  sell_volume   = 4;   // Cumulative sell notional in this window (wire)
+    int64  realized_pnl  = 5;   // Closed PnL from fills in this window (wire)
+    int64  gross_pnl     = 6;   // realized_pnl + unrealized contribution (wire)
+    int64  fees          = 7;   // Total fees paid in this window (wire)
+}
+
+// ---------------------------------------------------------------------------
+// Markout
+// ---------------------------------------------------------------------------
+
+// MarkoutHorizon holds the rolling average markout for one time horizon.
+// horizon_sec identifies the horizon: 15, 30, 60, or 300 seconds.
+//
+// pnl_bps formula per sample: (fair_at_T+Δt − fill_price) / fill_price × 10_000 × side_sign
+// avg_entry_price is provided so callers can recalculate using their own fair price:
+//   client_pnl_bps = (client_fair − avg_entry_price) / avg_entry_price × 10_000 × side
+message MarkoutHorizon {
+    uint64 horizon_sec     = 1;
+    int64  avg_entry_price = 2;  // Arithmetic mean of fill_price across rolling window (wire)
+    int64  pnl_bps         = 3;  // Arithmetic mean of markout bps across rolling window (wire)
+    uint32 sample_count    = 4;  // Number of fills in the rolling window (max 200)
+}
+
+// ---------------------------------------------------------------------------
+// Streaming
+// ---------------------------------------------------------------------------
+
+message PnlUpdateReply {
+    MarketPnl market = 1;
+    int64     ts     = 2;  // Unix ms when this update was emitted
+}
