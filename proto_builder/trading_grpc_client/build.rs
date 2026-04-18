@@ -13,6 +13,7 @@ fn main() {
                 "../../proto/risk_management.proto",
                 "../../proto/order_notify.proto",
                 "../../proto/market_metrics.proto",
+                "../../proto/pnl.proto",
             ],
             &["../../proto"],
         )

@@ -32,3 +32,7 @@ pub mod order_notify {
 pub mod market_metrics {
     tonic::include_proto!("market_metrics");
 }
+
+pub mod pnl {
+    tonic::include_proto!("pnl");
+}
