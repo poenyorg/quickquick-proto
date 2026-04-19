@@ -49,6 +49,7 @@ message AutoCancelOrdersProposal {
     uint32 exchange_id = 1;      /// Target exchange
     uint64 countdown_time = 2;   /// Countdown duration in milliseconds before auto-cancellation
     int64 event_timestamp = 3;   /// Timestamp when the auto-cancel was initiated
+    optional uint32 market_id = 4; 
 }
 
 /// CancelOrdersByCloidProposal cancels orders by their client-assigned IDs.
