@@ -44,15 +44,11 @@ message MarketPnl {
     int64  position_size      = 3;   // Net position; positive = long, negative = short (wire)
     int64  entry_price        = 4;   // Average entry price of the current position (wire); 0 if flat
     int64  mark_price         = 5;   // Mark price used to compute unrealized_pnl (wire)
-    int64  vwap_entry         = 6;   // Volume-weighted average entry price (wire)
-    int64  realized_pnl       = 7;   // Cumulative closed PnL for this market (wire)
-    int64  unrealized_pnl     = 8;   // Mark-to-market PnL on current open position (wire)
-    int64  total_pnl          = 9;   // realized + unrealized (wire)
-    int64  unrealized_pnl_bps = 10;  // (mark - vwap) / vwap × 10_000 × side_sign (wire)
-    uint64 hold_time_ms       = 11;  // Milliseconds since first fill opened the current position
-    repeated WindowMetrics    windows  = 12;  // Rolling window metrics; 6 windows: 15s/60s/300s/900s/3600s/86400s
-    repeated MarkoutHorizon   markouts = 13;  // Markout avg per horizon; 4 horizons: 15s/30s/60s/300s
-    int64                     calculated_at = 14;  // Unix ms when this snapshot was computed
+    int64  realized_pnl       = 6;   // Cumulative closed PnL for this market (wire)
+    uint64 hold_time_ms       = 7;  // Milliseconds since first fill opened the current position
+    repeated WindowMetrics    windows  = 8;  // Rolling window metrics; 6 windows: 15s/60s/300s/900s/3600s/86400s
+    repeated MarkoutHorizon   markouts = 9;  // Markout avg per horizon; 4 horizons: 15s/30s/60s/300s
+    int64                     calculated_at = 10;  // Unix ms when this snapshot was computed
 }
 
 // ---------------------------------------------------------------------------
