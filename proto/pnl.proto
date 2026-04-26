@@ -86,6 +86,7 @@ message MarkoutHorizon {
     int64 sell_avg_price = 6;        // mean fill_price của sell samples
     uint32 buy_count = 7;
     uint32 sell_count = 8;
+    int64 last_matured_at_ms = 9;
 }
 
 // ---------------------------------------------------------------------------
