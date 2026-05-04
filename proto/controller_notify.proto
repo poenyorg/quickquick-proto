@@ -35,6 +35,7 @@ message OrderProposal {
     string cloid = 7;                    /// Client order id
     bool is_update = 8;
     exchange.TimeInForce tif = 9;
+    exchange.OrderType order_type = 10;
 }
 
 /// NewOrdersProposal groups multiple orders into base and hedge orders.

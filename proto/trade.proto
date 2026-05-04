@@ -63,13 +63,13 @@ message StreamCancelReply {
 message RequestPlaceOrder {
     uint32 market = 1;                  /// Market/trading pair identifier
     exchange.OrderType order_type = 2;  /// Order type (LIMIT, MARKET, STOP_LIMIT, etc.)
-    int64 size = 3;                     /// Order quantity (positive for buy, negative for sell; in base asset units)
-    int64 price = 4;                    /// Order price (in quote asset units). Ignored for MARKET orders.
-    bool reduce_only = 5;               /// If true, order can only close positions, not open new ones
-    int64 timestamp = 6;                /// Order creation timestamp (milliseconds since epoch); used for ordering
-    string cloid = 7;                   /// Client-assigned order ID for tracking and cancellation by reference
-    bool is_update = 8;
-    exchange.TimeInForce tif = 9;
+    exchange.TimeInForce tif = 3;
+    int64 size = 4;                     /// Order quantity (positive for buy, negative for sell; in base asset units)
+    int64 price = 5;                    /// Order price (in quote asset units). Ignored for MARKET orders.
+    bool reduce_only = 6;               /// If true, order can only close positions, not open new ones
+    int64 timestamp = 7;                /// Order creation timestamp (milliseconds since epoch); used for ordering
+    string cloid = 8;                   /// Client-assigned order ID for tracking and cancellation by reference
+    bool is_update = 9;
     optional string order_id = 10;
 }
 
