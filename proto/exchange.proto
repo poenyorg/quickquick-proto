@@ -5,6 +5,9 @@ enum TimeInForce {
       IOC = 0;
       GTC = 1;
       GTD = 2;
+      FOK = 3;
+      GTX = 4; /// (ALO/POST ONLY)
+      HIDEN = 5;
 }
 
 enum OrderType {

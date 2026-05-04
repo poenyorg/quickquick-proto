@@ -1,6 +1,6 @@
 syntax = "proto3";
 import "google/protobuf/empty.proto";
-
+import "exchange.proto";
 package controller_notify;
 
 /// ControllerNotifyService handles order placement and cancellation proposals.
@@ -34,6 +34,7 @@ message OrderProposal {
     bool reduce_only = 6;                /// If true, order can only close positions, not open new ones
     string cloid = 7;                    /// Client order id
     bool is_update = 8;
+    exchange.TimeInForce tif = 9;
 }
 
 /// NewOrdersProposal groups multiple orders into base and hedge orders.
